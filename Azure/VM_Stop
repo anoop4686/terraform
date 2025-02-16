@@ -1,0 +1,23 @@
+# Disable Windows Authentication Manager (WAM)
+Update-AzConfig -EnableLoginByWam $false
+
+# Connect to your Azure account using device authentication
+Connect-AzAccount -UseDeviceAuthentication
+
+# Set the subscription ID
+$subscriptionId = "9b35fd22-ce26-4191-b1f8-6f672cdd3350"
+Select-AzSubscription -SubscriptionId $subscriptionId
+
+# Verify the subscription is set
+$currentContext = Get-AzContext
+if ($currentContext.Subscription.Id -ne $subscriptionId) {
+    Write-Host "Failed to set the subscription context. Please verify the subscription ID."
+    exit
+}
+
+# Define the resource group and VM name
+$resourceGroupName = "Demo"
+$vmName = "VM1"
+
+# Deallocate the VM
+Stop-AzVM -ResourceGroupName $resourceGroupName -Name $vmName -Force -NoWait
