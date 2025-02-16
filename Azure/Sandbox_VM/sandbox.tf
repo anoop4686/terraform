@@ -3,7 +3,7 @@ variable "subscription_id" {
   }
 
 variable "resource_group_name" { 
-  default = "Terraform" 
+  default = "Terraform-1" 
   }
 
 variable "location" { 
@@ -63,18 +63,8 @@ data "azurerm_virtual_network" "existing_vnet" {
 
 data "azurerm_subnet" "existing_subnet" {
   name                 = var.subnet_name
-  virtual_network_name = var.virtual_network_name
+  virtual_network_name = data.azurerm_virtual_network.existing_vnet.name
   resource_group_name  = var.resource_group_name
-}
-
-resource "azurerm_managed_disk" "disk" {
-  name                 = "${var.vm_name}-disk"
-  location             = var.location
-  resource_group_name  = var.resource_group_name
-  storage_account_type = var.disk_type
-  create_option        = "Empty"
-  disk_size_gb         = var.disk_size
-  tags                 = var.tags
 }
 
 resource "azurerm_linux_virtual_machine" "virtual_machine" {
@@ -89,8 +79,10 @@ resource "azurerm_linux_virtual_machine" "virtual_machine" {
   max_bid_price   = 0.20
 
   os_disk {
+    name                = "${var.vm_name}-disk"
     caching              = "ReadWrite"
     storage_account_type = var.disk_type
+    disk_size_gb         = var.disk_size
   }
 
   source_image_reference {
@@ -106,13 +98,6 @@ resource "azurerm_linux_virtual_machine" "virtual_machine" {
 
   disable_password_authentication = false
   tags                             = var.tags
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "data_disk" {
-  managed_disk_id    = azurerm_managed_disk.disk.id
-  virtual_machine_id = azurerm_linux_virtual_machine.virtual_machine.id
-  lun                = 0
-  caching            = "ReadWrite"
 }
 
 resource "azurerm_network_interface" "new_nic" {
